@@ -5,4 +5,4 @@ grpc_server:
   max_connection_idle: 15m
   timeout_graceful: 15s # сколько ждать при завершении
 log:
-  level: "info" # уровень логирования (debug, info, warn, error)
+  level: "debug" # уровень логирования (debug, info, warn, error)

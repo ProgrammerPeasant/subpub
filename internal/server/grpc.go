@@ -145,7 +145,7 @@ func (s *Server) Subscribe(req *pb.SubscribeRequest, stream pb.PubSub_SubscribeS
 				}
 				return status.Errorf(codes.Internal, "failed to send event: %v", err)
 			}
-			log.Debug("event sent successfully")
+			log.Debug("event sent successfully", slog.String("data", strData))
 		}
 	}
 }
