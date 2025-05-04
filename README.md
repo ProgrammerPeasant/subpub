@@ -77,7 +77,12 @@
 1.  **Склонируйте репозиторий:**
 
     ```bash
-    go mod tidy
+    git clone https://github.com/ProgrammerPeasant/subpub.git
+    ```
+    Передите в корент проекта:
+
+    ```bash
+    cd subpub
     ```
 
 3.  **Загрузите зависимости:**
@@ -117,7 +122,7 @@
 
    2.  **Тестирование gRPC сервиса:**
 
-    Я тестировал через gRPC Web UI, но можно и через `grpcurl` (или любой другой gRPC клиент), хотя с винды это просто адски неудобно.
+    Я тестировал через gRPC Web UI (grpcui), но можно и через `grpcurl` (или любой другой gRPC клиент), хотя с винды это просто адски неудобно.
     Также можно указывать таймауты для запросов.
 
     Вот примеры запросов (на дебаг режиме видно сообщения, полученные разными подписчиками и т. д.):
@@ -126,11 +131,11 @@
        grpcurl -plaintext -d '{
           "key": "123",
           "data": "123"
-       }' localhost:443 pubsub.v1.PubSub.Publish
+       }' localhost:50051 pubsub.v1.PubSub.Publish
        ```
        
        ```bash
        grpcurl -plaintext -d '{
         "key": "123"
-       }' localhost:443 pubsub.v1.PubSub.Subscribe
+       }' localhost:50051 pubsub.v1.PubSub.Subscribe
        ```
