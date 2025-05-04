@@ -21,6 +21,21 @@ type SubPub interface {
 	Close(ctx context.Context) error
 }
 
+func NewSubPub() SubPub {
+	return &subpubImpl{
+		subjects: make(map[string]*subjectData),
+	}
+}
+
+type subpubImpl struct {
+	mu           sync.RWMutex
+	subjects     map[string]*subjectData
+	wg           sync.WaitGroup
+	nextSubID    uint64
+	closed       atomic.Bool
+	shutdownOnce sync.Once
+}
+
 type subscriber struct {
 	id      uint64
 	handler MessageHandler
@@ -29,6 +44,21 @@ type subscriber struct {
 	once    sync.Once
 	sp      *subpubImpl
 	subject string
+}
+
+type subjectData struct {
+	mu          sync.RWMutex
+	subscribers map[uint64]*subscriber
+}
+
+func (s *subscriber) closeChan() {
+	s.once.Do(func() {
+		close(s.msgChan)
+	})
+}
+
+func (s *subscriber) cleanupResources() {
+	s.closeChan()
 }
 
 func (s *subscriber) run(wg *sync.WaitGroup) {
@@ -45,45 +75,6 @@ func (s *subscriber) run(wg *sync.WaitGroup) {
 		case <-s.quit:
 			return
 		}
-	}
-}
-
-func (s *subscriber) closeChan() {
-	s.once.Do(func() {
-		close(s.msgChan)
-	})
-}
-
-func (s *subscriber) cleanupResources() {
-	s.closeChan()
-}
-
-func (s *subscriber) Unsubscribe() {
-	s.sp.unsubscribe(s.subject, s.id)
-	close(s.quit)
-	go func() {
-		for range s.msgChan {
-		}
-	}()
-}
-
-type subjectData struct {
-	mu          sync.RWMutex
-	subscribers map[uint64]*subscriber
-}
-
-type subpubImpl struct {
-	mu           sync.RWMutex
-	subjects     map[string]*subjectData
-	wg           sync.WaitGroup
-	nextSubID    uint64
-	closed       atomic.Bool
-	shutdownOnce sync.Once
-}
-
-func NewSubPub() SubPub {
-	return &subpubImpl{
-		subjects: make(map[string]*subjectData),
 	}
 }
 
@@ -129,6 +120,15 @@ func (sp *subpubImpl) Subscribe(subject string, cb MessageHandler) (Subscription
 	go sub.run(&sp.wg)
 
 	return sub, nil
+}
+
+func (s *subscriber) Unsubscribe() {
+	s.sp.unsubscribe(s.subject, s.id)
+	close(s.quit)
+	go func() {
+		for range s.msgChan {
+		}
+	}()
 }
 
 func (sp *subpubImpl) Publish(subject string, msg interface{}) error {

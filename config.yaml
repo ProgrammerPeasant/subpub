@@ -1,0 +1,8 @@
+env: "development"
+grpc_server:
+  port: ":50051"         # порт слушания
+  timeout: 5s
+  max_connection_idle: 15m
+  timeout_graceful: 15s # сколько ждать при завершении
+log:
+  level: "info" # уровень логирования (debug, info, warn, error)
